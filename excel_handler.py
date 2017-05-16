@@ -80,56 +80,91 @@ def isNumberString(variable):
     return False
 
 
+def str_typevec(dt_list):
+    """
+    传入类型数字化列表typevec，返回类型名列表。
+    ----------
+    参数： tList - 类型数字化列表对象
+    返回值： 类型名的字符串列表 list
+    """
+    str_dtvec = list()
+    for value in dt_list:
+        if value == 1:
+            str_dtvec.append('String')
+        elif value == 2:
+            str_dtvec.append('Other')
+        elif value == 3:
+            str_dtvec.append('Null')
+        elif value == 4:
+            str_dtvec.append('Bool')
+        elif value == 5:
+            str_dtvec.append('Time')
+        elif value == 6:
+            str_dtvec.append('Int')
+        elif value == 7:
+            str_dtvec.append('Float')
+        elif value == 8:
+            str_dtvec.append('Formula')
+        else:
+            str_dtvec.append('')
+    return str_dtvec
+
+
 def dtype_vector(dList):
     """
-    传入array-like的参数dList，返回其值类型的权值列表。
+    传入list-like的参数dList，返回其值类型的数字化列表。
     ----------
     使用场景：
     读入一个数据表（例如Excel工作表）时，需要按照每行数据的类型判断该行数据是表头标题行还是数据内容行。
-    由于在数据分析中主要是要对数字类型(int,float等)进行分析，而表头标题原则上都是字符串类型(str)，故数字类型和字符串应分居权值的两端。而空值在大量数据表中可能会在数据行的某些位置存在，而在标题行中一般不会存在（excel中合并单元格会造成被合并单元格为空值，但可用handle_merged_cells(workbook)将所有表中合并单元格的值分发到各子单元格），因此空值取权值3。时间类型和布尔类型在统计分析中也比较常见和有用，因此赋权值4。其它的数据类型pandas中较少见，但为了与“标题”中常用的str区分开来，给予稍高的权值2。
+    由于在数据分析中主要是要对数字类型(int,float等)进行分析，而表头标题原则上都是字符串类型(str)，故数字类型和字符串应分居权值的两端。而空值在大量数据表中可能会在数据行的某些位置存在，而在标题行中一般不会存在（excel中合并单元格会造成被合并单元格为空值，但可用cancel_merged_cells(worksheet)将所有表中合并单元格的值分发到各子单元格），因此空值取权值3。时间类型和布尔类型在统计分析中也比较常见和有用，因此赋权值4。其它的数据类型pandas中较少见，但为了与“标题”中常用的str区分开来，给予稍高的权值2。
     ----------
-    参数： dList - 一行数据，列表对象list
-    返回值：对应的数据类型权值列表list
+    参数： dList - 一行数据记录的列表对象 list
+    返回值：对应的数据类型数字化列表 list
     """
     dt_vec = list()
     for i in range(len(dList)):
         if isnull(dList[i]):
-            dt_vec.append(3)                        # 空值的权值为3
-        elif isinstance(dList[i], (int, float)):
-            dt_vec.append(5)                        # 数字类型的权值为5
-        elif isinstance(dList[i], (
-            datetime.datetime,
-            datetime.date,
-            datetime.time,
-            datetime.timedelta,
-            datetime.timezone,
-            Timestamp,
-            bool)
-        ):
-            dt_vec.append(4)                        # 时间类型和布尔类型的数据的权值为4
+            dt_vec.append(3)                        # Null -> 3
+        elif isinstance(dList[i], int):
+            dt_vec.append(6)                        # int -> 6
+        elif isinstance(dList[i], float):
+            dt_vec.append(7)                        # float -> 7
+        elif isinstance(dList[i],
+                        (datetime.datetime,
+                         datetime.date,
+                         datetime.time,
+                         datetime.timedelta,
+                         datetime.timezone,
+                         Timestamp)):
+            dt_vec.append(5)                        # time -> 5
+        elif isinstance(dList[i], bool):
+            dt_vec.append(4)                        # Bool -> 4
         elif isinstance(dList[i], str):
             if isFormula(dList[i]):
-                dt_vec.append(5)                    # 单元格公式权值为5
+                dt_vec.append(8)                    # 单元格公式 -> 8
             else:
-                dt_vec.append(1)                    # 字符串类型的权值为1
+                dt_vec.append(1)                    # str -> 1
         else:
-            dt_vec.append(2)                        # 其它类型的数据权值为2
+            dt_vec.append(2)                        # 其它类型 -> 2
     return dt_vec
 
 
 def sheet_to_typematrix(sheet_df):
     """
-    处理传入由worksheet转换的DataFrame对象，返回其权值矩阵。用于下一步用k均值算法对数据表每行进行分类识别出是表头或数据。
+    处理传入由worksheet转换的DataFrame对象，返回其数字化矩阵。用于下一步用k均值算法对数据表每行进行分类识别出是表头或数据。
     ----------
     参数： sheet_df - 数据表DataFrame对象
     返回值：权值矩阵，ndarray类型。
                     1 - 字符串类型
                     2 - 其它类型
                     3 - 空值
-                    4 - 时间类型、布尔类型
-                    5 - 数值类型、公式类型
+                    4 - 布尔类型
+                    5 - 时间类型
+                    6 - 整数类型
+                    7 - 浮点类型
+                    8 - 公式类型
     """
-    sheet_ary = np.empty(sheet_df.shape)
+    sheet_ary = np.zeros(sheet_df.shape)
     for line_num in range(len(sheet_df)):
         sheet_ary[line_num] = dtype_vector(list(sheet_df.iloc[line_num, :]))
     return sheet_ary
@@ -140,13 +175,13 @@ def get_label_list(sheet_df):
     分析传入的工作表DataFrame对象，返回行类型归类列表label_list，列表元素为0的表示该行是标签行，为1表示数据行。
     ----------
     参数： sheet_df - 数据表的DataFrame对象
-    返回值：工作表逐行归类列表的list对象
+    返回值：[工作表记录分类列表list对象，数据行类型数字化列表list对象]
     """
-    label_list = list()
     type_mat = sheet_to_typematrix(sheet_df)
-    [centroid, label_list] = scipy.cluster.vq.kmeans2(
-        type_mat, np.array([np.ones((1, type_mat.shape[1]))[0], type_mat[-1, :]]))
-    return list(label_list)
+    [centroid, label_list_ary] = scipy.cluster.vq.kmeans2(
+            type_mat, np.array([np.ones((1, type_mat.shape[1]))[0], type_mat[-1, :]]))
+    dt_list = list(np.round(centroid[-1]))
+    return list(label_list_ary), dt_list
 
 
 def is_no_header(label_list):
@@ -189,10 +224,10 @@ def merge_headers(sheet_df):
     参数： sheet_df - 数据表的DataFrame对象
     返回值：合并标题行后的数据表DataFrame对象
     """
-    new_df = sheet_df.copy()                        # 定义目标DataFrame对象
-    label_list = get_label_list(sheet_df)           # 获得标识每行记录属性的列表
-    h_rows = header_rows(label_list)                # 获得标题行的行号列表
-    if len(h_rows) != 0:                            # 如果是纯数据记录则直接返回原DataFrame
+    new_df = sheet_df.copy()                            # 定义目标DataFrame对象
+    label_list, dt_list = get_label_list(sheet_df)      # 获得标识每行记录属性的列表
+    h_rows = header_rows(label_list)                    # 获得标题行的行号列表
+    if len(h_rows) != 0:                                # 无标题行则直接返回原DataFrame
         for r in h_rows:
             new_df.iloc[r, :] = cells_to_str(new_df.iloc[r, :])
             if r == 0:

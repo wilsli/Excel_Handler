@@ -6,7 +6,7 @@ Created on Thu Apr 27 21:19:47 2017
 @author: wilson
 """
 
-import sys.path, os, time, base64
+import sys, os, time, base64
 # sys.path.append(os.getcwd())
 sys.path.append('/home/webApp/ehApp')
 import excel_handler as eh
@@ -73,16 +73,16 @@ def api_sendfile():
                 Token='None')
         wsdf = dict()
         excel_writer = ExcelWriter(out_file, engine='openpyxl')
-        
+
 #         os.remove(org_file)                               # 删除源文件
 
         for sheetname in wb.get_sheet_names():
-            if len(wb[sheetname]._cells) == 0:
+            if len(wb[sheetname]._cells) == 0:              # 跳过空表
                 pass
             else:
                 wsdf[sheetname] = eh.merge_headers(eh.sheet_to_df(
                         eh.cancel_merged_cells(wb[sheetname])))
-                wsdf[sheetname].to_excel(excel_writer, sheetname, index = False)   # 向ExcelWriter对象添加worksheet
+                wsdf[sheetname].to_excel(excel_writer, sheetname, index=False)   # 向ExcelWriter对象添加worksheet
         excel_writer.save()                                     # 保存xlsx文件
         return jsonify(
             errno=0,
