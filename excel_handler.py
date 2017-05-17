@@ -80,36 +80,6 @@ def isNumberString(variable):
     return False
 
 
-def str_typevec(dt_list):
-    """
-    传入类型数字化列表typevec，返回类型名列表。
-    ----------
-    参数： tList - 类型数字化列表对象
-    返回值： 类型名的字符串列表 list
-    """
-    str_dtvec = list()
-    for value in dt_list:
-        if value == 1:
-            str_dtvec.append('String')
-        elif value == 2:
-            str_dtvec.append('Other')
-        elif value == 3:
-            str_dtvec.append('Null')
-        elif value == 4:
-            str_dtvec.append('Bool')
-        elif value == 5:
-            str_dtvec.append('Time')
-        elif value == 6:
-            str_dtvec.append('Int')
-        elif value == 7:
-            str_dtvec.append('Float')
-        elif value == 8:
-            str_dtvec.append('Formula')
-        else:
-            str_dtvec.append('')
-    return str_dtvec
-
-
 def dtype_vector(dList):
     """
     传入list-like的参数dList，返回其值类型的数字化列表。
@@ -175,16 +145,15 @@ def get_label_list(sheet_df):
     分析传入的工作表DataFrame对象，返回行类型归类列表label_list，列表元素为0的表示该行是标签行，为1表示数据行。
     ----------
     参数： sheet_df - 数据表的DataFrame对象
-    返回值：[工作表记录分类列表list对象，数据行类型数字化列表list对象]
+    返回值：工作表记录分类列表list对象
     """
     type_mat = sheet_to_typematrix(sheet_df)
     [centroid, label_list_ary] = scipy.cluster.vq.kmeans2(
             type_mat, np.array([np.ones((1, type_mat.shape[1]))[0], type_mat[-1, :]]))
-    dt_list = list(np.round(centroid[-1]))
-    return list(label_list_ary), dt_list
+    return list(label_list_ary)
 
 
-def is_no_header(label_list):
+def has_no_header(label_list):
     """
     根据行类型识别列表label_list判断是否为纯数据表（表中不含表头标题行），纯数据表返回True。
     ----------
@@ -196,6 +165,67 @@ def is_no_header(label_list):
     else:
         return False
 
+def get_type_str(data_record):
+    """
+    传入一条数据记录，返回类型名列表。
+    ----------
+    参数： data_record - 一行数据Series对象      pandas.Series
+    返回值： 类型名的字符串列表type_str_list      list
+    """
+    type_str_list = list()
+    for cell in data_record:
+        type_str_list.append(type(cell).__name__)
+    return type_str_list
+
+
+def dtype_list(sheet_df, label_list):
+    """
+    根据sheet_df和label_list判断各列的数据类型
+    ----------
+    参数：数据表DataFrame对象sheet_df，数据记录属性列表label_list
+    返回值：数据表各列数据类型名的列表type_str_list      list
+    """
+    first_dr = first_data_row(label_list)
+    type_str_list = get_type_str(sheet_df.iloc[first_dr, :])
+    ncol = null_col(type_str_list)
+    for col in ncol:
+        for row in np.arange(first_dr+1, len(label_list)):
+            type_str_list[col] = type(sheet_df.iloc[row, col]).__name__
+            if type_str_list[col] == 'NoneType':
+                continue
+            else:
+                break
+    return type_str_list
+
+def null_col(type_str_list):
+    """
+    寻找type_str_list中的‘NoneType'类型所在的列号
+    ----------
+    参数： type_str_list - 记录类型名列表     list
+    返回值： 'NoneType'所在的列号列表n_col     list
+    """
+    n_col = list()
+    for col in range(len(type_str_list)):
+        if type_str_list[col] == 'NoneType':
+            n_col.append(col)
+        else:
+            pass
+    return n_col
+
+def first_data_row(label_list):
+    """
+    寻找第一条数据记录的行号
+    ----------
+    参数： 记录属性列表label_list        list
+    返回值： 第一条数据记录的行号          int
+    """
+    for row in range(len(label_list)):
+        if label_list[row] == 0:
+            pass
+        else:
+            break
+    return row
+
 
 def header_rows(label_list):
     """
@@ -205,7 +235,7 @@ def header_rows(label_list):
     返回值：标题行的行号列表，list对象。
     """
     header_rows = list()
-    if is_no_header(label_list):                        # 纯数据没有标题行，返回空列表
+    if has_no_header(label_list):                    # 纯数据没有标题行，返回空列表
         return header_rows
     else:
         for r in range(len(label_list)):
@@ -217,15 +247,17 @@ def header_rows(label_list):
         return header_rows
 
 
-def merge_headers(sheet_df):
+def clean_sheet(sheet_df):
     """
-    将worksheet的标题行合并，返回合并后表格的DataFrame。
+    将worksheet的标题行合并，返回合并后表格的DataFrame，以及各字段数据类型字典。
     ----------
     参数： sheet_df - 数据表的DataFrame对象
-    返回值：合并标题行后的数据表DataFrame对象
+    返回值：合并标题行后的数据表DataFrame对象new_df    DataFrame
+          {列名：数据类型}的字段数据类型字典dt_scheme  Dict
     """
     new_df = sheet_df.copy()                            # 定义目标DataFrame对象
-    label_list, dt_list = get_label_list(sheet_df)      # 获得标识每行记录属性的列表
+    label_list = get_label_list(sheet_df)               # 获得标识每行记录属性的列表
+    type_str_list = dtype_list(sheet_df, label_list)    # 获得字段类型列表
     h_rows = header_rows(label_list)                    # 获得标题行的行号列表
     if len(h_rows) != 0:                                # 无标题行则直接返回原DataFrame
         for r in h_rows:
@@ -237,8 +269,12 @@ def merge_headers(sheet_df):
         new_df.columns = list(new_df.iloc[0, :])
         new_df.drop(h_rows, inplace=True)
         new_df = new_df.reset_index(drop=True)
-        return new_df
-    return sheet_df
+    else:
+        pass
+    dt_scheme = dict()
+    for col in range(len(type_str_list)):
+        dt_scheme[new_df.columns[col]] = type_str_list[col]
+    return new_df, dt_scheme
 
 
 def cells_to_str(row):
@@ -289,7 +325,7 @@ def xls_to_xlsx(*args, **kw):
         def _get_xlrd_cell_value(cell):
             value = cell.value
             if cell.ctype == xlrd.XL_CELL_DATE:
-                datetime_tup = xlrd.xldate_as_tuple(value, 0)    # xldate类型的单元计算时间元组
+                datetime_tup = xlrd.xldate_as_tuple(value, 0)   # xldate类型的单元计算时间元组
                 if datetime_tup[0:3] == (0, 0, 0):              # 没有日期的用time处理
                     value = datetime.time(*datetime_tup[3:])    # 将元组第四个往后的元素分别传入
                 else:

@@ -61,7 +61,7 @@ def api_sendfile():
 
         org_file = os.path.join(FOLDER_IN, new_filename)
         out_file = os.path.join(FOLDER_OUT, new_filename)
-        
+
         if ext == 'xls':                                    # 旧版本的xls文件
             wb = eh.xls_to_xlsx(org_file)                   # 使用xls_to_xls函数打开
         elif ext == 'xlsx':                                         # 新版本xlsx文件
@@ -70,8 +70,9 @@ def api_sendfile():
             return jsonify(
                 errno=1001,
                 msg='Wrong file type!',
-                Token='None')
-        wsdf = dict()
+                token='None')
+        sheet_df = dict()
+        dt_scheme = dict()
         excel_writer = ExcelWriter(out_file, engine='openpyxl')
 
 #         os.remove(org_file)                               # 删除源文件
@@ -80,20 +81,21 @@ def api_sendfile():
             if len(wb[sheetname]._cells) == 0:              # 跳过空表
                 pass
             else:
-                wsdf[sheetname] = eh.merge_headers(eh.sheet_to_df(
+                sheet_df[sheetname], dt_scheme[sheetname] = eh.clean_sheet(eh.sheet_to_df(
                         eh.cancel_merged_cells(wb[sheetname])))
-                wsdf[sheetname].to_excel(excel_writer, sheetname, index=False)   # 向ExcelWriter对象添加worksheet
+                sheet_df[sheetname].to_excel(excel_writer, sheetname, index=False)   # 向ExcelWriter对象添加worksheet
         excel_writer.save()                                     # 保存xlsx文件
         return jsonify(
             errno=0,
             msg='File proceed completed.',
             path2file=os.path.join(FOLDER_OUT, new_filename),
-            Token=token)
+            type_scheme=dt_scheme,
+            token=token)
     else:
         return jsonify(
             errno=1001,
             msg='Wrong file type!',
-            Token='None')
+            token='None')
 
 
 if __name__ == '__main__':
