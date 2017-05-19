@@ -6,7 +6,7 @@ Created on Thu Apr 27 21:19:47 2017
 @author: wilson
 """
 
-import sys, os, time, base64
+import sys, os, time
 # sys.path.append(os.getcwd())
 sys.path.append('/home/webApp/ehApp')
 import excel_handler as eh
@@ -16,6 +16,8 @@ from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+app.config['JSON_SORT_KEYS'] = False
 ALLOWED_EXTENSIONS = set(['csv', 'xls', 'xlsx'])
 FOLDER_IN = os.path.abspath('/home/webApp/ehApp/infiles')
 FOLDER_OUT = os.path.abspath('/home/webApp/ehApp/outfiles')
@@ -57,7 +59,6 @@ def api_sendfile():
             ext = sec_name.rsplit('.', 1)[1]
         new_filename = prx_name + tstamp + '.' + ext
         file.save(os.path.join(FOLDER_IN, new_filename))     # 保存到FOLDER_IN目录
-        token = base64.b64encode(new_filename.encode()).decode()
 
         org_file = os.path.join(FOLDER_IN, new_filename)
         out_file = os.path.join(FOLDER_OUT, new_filename)
@@ -69,8 +70,7 @@ def api_sendfile():
         else:
             return jsonify(
                 errno=1001,
-                msg='Wrong file type!',
-                token='None')
+                msg='文件格式错误。')
         sheet_df = dict()
         dt_scheme = dict()
         excel_writer = ExcelWriter(out_file, engine='openpyxl')
@@ -82,20 +82,19 @@ def api_sendfile():
                 pass
             else:
                 sheet_df[sheetname], dt_scheme[sheetname] = eh.clean_sheet(eh.sheet_to_df(
-                        eh.cancel_merged_cells(wb[sheetname])))
+                    eh.cancel_merged_cells(wb[sheetname])))
                 sheet_df[sheetname].to_excel(excel_writer, sheetname, index=False)   # 向ExcelWriter对象添加worksheet
         excel_writer.save()                                     # 保存xlsx文件
+
         return jsonify(
             errno=0,
-            msg='File proceed completed.',
+            msg='处理成功。',
             path2file=os.path.join(FOLDER_OUT, new_filename),
-            type_scheme=dt_scheme,
-            token=token)
+            type_scheme=dt_scheme)
     else:
         return jsonify(
             errno=1001,
-            msg='Wrong file type!',
-            token='None')
+            msg='文件格式错误。')
 
 
 if __name__ == '__main__':

@@ -15,7 +15,7 @@ Dependencies: pandas, openpyxl
 
 """
 import numpy as np
-from pandas import DataFrame, isnull, Timestamp
+from pandas import DataFrame, Series, isnull, Timestamp
 import datetime, xlrd, openpyxl
 import scipy.cluster
 
@@ -165,6 +165,7 @@ def has_no_header(label_list):
     else:
         return False
 
+
 def get_type_str(data_record):
     """
     传入一条数据记录，返回类型名列表。
@@ -197,6 +198,7 @@ def dtype_list(sheet_df, label_list):
                 break
     return type_str_list
 
+
 def null_col(type_str_list):
     """
     寻找type_str_list中的‘NoneType'类型所在的列号
@@ -211,6 +213,7 @@ def null_col(type_str_list):
         else:
             pass
     return n_col
+
 
 def first_data_row(label_list):
     """
@@ -259,7 +262,7 @@ def clean_sheet(sheet_df):
     label_list = get_label_list(sheet_df)               # 获得标识每行记录属性的列表
     type_str_list = dtype_list(sheet_df, label_list)    # 获得字段类型列表
     h_rows = header_rows(label_list)                    # 获得标题行的行号列表
-    if len(h_rows) != 0:                                # 无标题行则直接返回原DataFrame
+    if len(h_rows) != 0:                                # 有标题行
         for r in h_rows:
             new_df.iloc[r, :] = cells_to_str(new_df.iloc[r, :])
             if r == 0:
@@ -269,11 +272,13 @@ def clean_sheet(sheet_df):
         new_df.columns = list(new_df.iloc[0, :])
         new_df.drop(h_rows, inplace=True)
         new_df = new_df.reset_index(drop=True)
-    else:
-        pass
+    else:                                               # 无标题行只需把列名转为字符串
+        new_df.columns = list(cells_to_str(Series(list(new_df.columns))))
+
     dt_scheme = dict()
-    for col in range(len(type_str_list)):
-        dt_scheme[new_df.columns[col]] = type_str_list[col]
+    dt_scheme['column_titles'] = new_df.columns.tolist()
+    dt_scheme['column_dtypes'] = type_str_list
+
     return new_df, dt_scheme
 
 
