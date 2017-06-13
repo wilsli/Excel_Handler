@@ -1,0 +1,15 @@
+[Unit]
+Description=Excel Handler application by uWSGI
+After=syslog.target
+
+[Service]
+ExecStart=/usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini
+PIDFile=/var/run/ehApp.pid
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

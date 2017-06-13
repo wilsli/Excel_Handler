@@ -38,7 +38,8 @@ def allowed_file(filename):
 
 @app.route('/')
 def normal():
-    return jsonify(cwd=os.getcwd())
+    return jsonify(cwd=os.getcwd(),
+        stdout_encoding=sys.stdout.encoding)
 
 
 @app.route('/send')
