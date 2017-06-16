@@ -143,10 +143,10 @@ uWSGI默认会从`/usr/sbin/uwsgi`运行，但从systemd启动服务必须在`/u
 
 >home  
 >'   └─ webApp  
->'               └─ ehApp 程序根目录   
->'			├─ templates 页面模板目录（测试用）  
->'			├─ infiles  传入文件临时保存的目录  
->'			└─ outfiles 处理完成输出文件的目录  
+>'               └─ ehApp (程序根目录)   
+>'			├─ templates (页面模板目录（测试用）)  
+>'			├─ infiles  (传入文件临时保存的目录)  
+>'			└─ outfiles (处理完成输出文件的目录)  
 
 需手动建立`/home/webApp`目录，将`ehApp.tar`文件解压到该目录上：  
 >   [root@server]# mkdir /home/webApp  
