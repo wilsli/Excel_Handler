@@ -4,10 +4,10 @@
 
 ExcelHandler应用程序通过uwsgi接口提供Excel文件预处理，程序由两部分组成：  
 
-- main\prog.py ——主程序，负责接口提供、文件管理等。
-- excel\handler.py ——功能库，包括各种excel文件处理函数和方法。
+- main_prog.py ——主程序，负责接口提供、文件管理等。
+- excel_handler.py ——功能库，包括各种excel文件处理函数和方法。
 
-## 环境  
+## 环境
 
 - Python 3.5+ (xlrd, openpyxl, Pandas, SciPy, NumPy, Flask)  
    程序是用Python3写的，用到的外部库包括xlrd(读取.xls文件)、openpyxl(读写.xlsx文件)、Pandas(数据处理)、SciPy(科学计算和机器学习)、NumPy(代数运算)、Flask(web服务框架)
@@ -21,6 +21,14 @@ ExcelHandler应用程序通过uwsgi接口提供Excel文件预处理，程序由�
 安装过程使用root用户进行：  
 
 > [user@server]$ sudo -s  
+
+默认语言编码<u>**必须**</u>是UTF-8系列类型，因此，必须检查`/etc/locale.conf`文件有以下描述：  
+
+> LANG="en_US.UTF-8"  
+> LC_ALL="en_US.UTF-8"  
+> LC_LANG="en_US.UTF-8"  
+
+若修改了系统默认语言编码需重启系统。
 
 ### （一） Python3
 
@@ -64,15 +72,15 @@ ExcelHandler应用程序通过uwsgi接口提供Excel文件预处理，程序由�
 
 至此Miniconda3的Pyhton3基础环境安装完毕。  
 
-#### 1.2 NumPy, SciPy, Pandas, xlrd, openpyxl, Flask
+#### 1.2 NumPy, SciPy, Pandas, xlrd, openpyxl, Flask, pcre
 
 通过conda安装需要的Python库到conda的根环境（若使用虚拟环境，需在相应虚拟环境中再次通过conda安装）。  
 
-> [root@server]# conda install numpy scipy pandas xlrd openpyxl flask  
+> [root@server]# conda install numpy scipy pandas xlrd openpyxl flask pcre
 
 至此，Python3环境已经就绪。  
 
-### （二） uWSGI server  
+### （二） uWSGI server
 
 conda没有提供uWSGI服务器，虽然可以用Python的pip安装，但用源码安装方可保证正常稳定运行。  
 #### 2.1 源码下载  
