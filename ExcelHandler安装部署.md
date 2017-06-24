@@ -1,13 +1,13 @@
 # ExcelHandler安装部署
 
-## 简介：  
+## 简介  
 
 ExcelHandler应用程序通过uwsgi接口提供Excel文件预处理，程序由两部分组成：  
 
 - main\prog.py ——主程序，负责接口提供、文件管理等。
 - excel\handler.py ——功能库，包括各种excel文件处理函数和方法。
 
-## 环境：  
+## 环境  
 
 - Python 3.5+ (xlrd, openpyxl, Pandas, SciPy, NumPy, Flask)  
    程序是用Python3写的，用到的外部库包括xlrd(读取.xls文件)、openpyxl(读写.xlsx文件)、Pandas(数据处理)、SciPy(科学计算和机器学习)、NumPy(代数运算)、Flask(web服务框架)
@@ -16,7 +16,7 @@ ExcelHandler应用程序通过uwsgi接口提供Excel文件预处理，程序由�
 - systemd(CentOS) 或 Supervisor(Debian、Ubuntu)  
    维持服务的守护进程
 
-## 安装及环境搭建：
+## 安装及环境搭建
 
 安装过程使用root用户进行：  
 
@@ -89,8 +89,8 @@ conda没有提供uWSGI服务器，虽然可以用Python的pip安装，但用源�
 确认系统默认的python命令使用Python3版本后（用`python -V`命令确认），进入`/usr/uwsgi-2.0.15`目录，编译安装uWSGI：  
 
 > [root@server]# python uwsgiconfig.py --build  
->    :  
->    :  
+> :  
+> :  
 > \######## end of uWSGI configuration ########  
 > total build time: 23 seconds  
 > \*\*\* uWSGI is ready, launch it with ./uwsgi \*\*\*  
@@ -161,7 +161,7 @@ uWSGI默认会从`/usr/sbin/uwsgi`运行，但从systemd启动服务必须在`/u
 
 ExcelHandler的服务启动参数位于`ehApp.ini`文件，配置说明详见文件注释。默认配置为只可以通过本地的9999端口（即`127.0.0.1:9999`）访问服务，如需全网访问，修改`http-socket`配置项为`0.0.0.0:9999`
 
-## 部署服务：  
+## 部署系统服务  
 
 CentOS系统用systemd管理服务的自启动和服务进程守护，设置ExcelHandler程序为随系统启动的服务进程，需要先将ehApp.service文件拷贝至systemd的指定目录并配置激活服务：  
 >[root@server]# cp /home/webApp/ehApp/ehApp.service /etc/systemd/system  
@@ -171,13 +171,13 @@ CentOS系统用systemd管理服务的自启动和服务进程守护，设置Exce
 检查服务启动状态，正常应该显示类似如下的信息：
 >[root@server]# systemctl status ehApp.service  
 >● ehApp.service - Excel Handler application by uWSGI  
->   Loaded: loaded (/etc/systemd/system/ehApp.service; enabled; vendor preset: disabled)  
->   Active: active (running) since 二 2017-06-13 16:59:25 CST; 2 days ago  
-> Main PID: 22377 (uwsgi)  
->   Status: "uWSGI is ready"  
->   CGroup: /system.slice/ehApp.service  
+>Loaded: loaded (/etc/systemd/system/ehApp.service; enabled; vendor preset: disabled)  
+>Active: active (running) since 二 2017-06-13 16:59:25 CST; 2 days ago  
+>Main PID: 22377 (uwsgi)  
+>Status: "uWSGI is ready"  
+>CGroup: /system.slice/ehApp.service  
 >'			├─22377 /usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini  
 >'			└─22387 /usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini  
 >16:59:25 server  uwsgi[22377]: WSGI app 0 (mountpoint='') ready in 3 seconds on interpreter 0x1c64f30 pid: 22377 (default app)   
 
-用浏览器或者curl访问`127.0.0.1:9999`，可以得到程序工作目录的json返回。
+用浏览器或者`curl`访问`127.0.0.1:9999`，可以得到程序工作目录的json返回。
