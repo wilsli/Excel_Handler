@@ -105,7 +105,7 @@ conda没有提供uWSGI服务器，虽然可以用Python的pip安装，但用源�
 
 至此uWSGI server安装完毕。测试是否可以正常运行：  
 
->   [root@server]# uwsgi  
+>   [root@server]# ./uwsgi  
 >   \*\*\* Starting uWSGI 2.0.15 (64bit) on [Tue Jun 13 13:31:05 2017] \*\*\*  
 >   compiled with version: 4.8.5 20150623 (Red Hat 4.8.5-11) on 19 May 2017 14:33:49  
 >   os: Linux-3.10.0-514.21.1.el7.x86_64 #1 SMP Thu May 25 17:04:51 UTC 2017  
