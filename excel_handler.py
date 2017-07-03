@@ -264,12 +264,12 @@ def clean_sheet(sheet_df):
     h_rows = header_rows(label_list)                    # 获得标题行的行号列表
     if len(h_rows) != 0:                                # 有标题行
         for r in h_rows:
-            new_df.iloc[r, :] = cells_to_str(new_df.iloc[r, :])
+            current_row = cells_to_str(new_df.iloc[r, :])
             if r == 0:
-                next
+                title_row = current_row.copy()
             else:
-                new_df.iloc[0, :] = new_df.iloc[0, :].fillna('*') + '/' + new_df.iloc[r, :].fillna('*')   # 合并第一行和第r行
-        new_df.columns = list(new_df.iloc[0, :])
+                title_row = title_row.fillna('*') + '/' + current_row.fillna('*')   # 合并第一行和第r行
+        new_df.columns = list(title_row)
         new_df.drop(h_rows, inplace=True)
         new_df = new_df.reset_index(drop=True)
     else:                                               # 无标题行只需把列名转为字符串
@@ -289,12 +289,15 @@ def cells_to_str(row):
     参数：row - 一行数据，Series对象。
     返回值：类型转换后的Series对象。
     """
-    new_row = row.copy()
-    for i in range(len(new_row)):
-        if isinstance(row.iloc[i], (str)) or isnull(row.iloc[i]):
+    row_list = list(row)
+    for i in range(len(row_list)):
+        if isinstance(row_list[i], (str)) or isnull(row.iloc[i]):
+            if type(row_list[i]).__name__ == 'NaTType':             # NaT类型要转换成普通None类型
+                row_list[i] = None
             next
         else:
-            new_row.iloc[i] = str(row.iloc[i])
+            row_list[i] = str(row_list[i])
+    new_row = Series(row_list)
     return new_row
 
 
