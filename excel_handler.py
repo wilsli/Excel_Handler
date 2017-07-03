@@ -189,11 +189,11 @@ def dtype_list(sheet_df, label_list):
     first_dr = first_data_row(label_list)
     type_str_list = get_type_str(sheet_df.iloc[first_dr, :])
     ncol = null_col(type_str_list)
-    for col in ncol:
+    for col in ncol:              # 对数据类型为'NoneType'和'NaTType'的列进行处理
         for row in np.arange(first_dr+1, len(label_list)):
             type_str_list[col] = type(sheet_df.iloc[row, col]).__name__
-            if type_str_list[col] == 'NoneType':
-                continue
+            if type_str_list[col] == 'NoneType' or type_str_list[col] == 'NaTType':
+                continue         # 取下一行数据分析数值类型，直至第一个非'NoneType'或'NaTType'为止
             else:
                 break
     return type_str_list
@@ -201,14 +201,14 @@ def dtype_list(sheet_df, label_list):
 
 def null_col(type_str_list):
     """
-    寻找type_str_list中的‘NoneType'类型所在的列号
+    寻找type_str_list中的'NoneType'和'NaTType'类型所在的列号
     ----------
-    参数： type_str_list - 记录类型名列表     list
-    返回值： 'NoneType'所在的列号列表n_col     list
+    参数： type_str_list - 记录类型名列表                list
+    返回值： 'NoneType'或'NaTType'所在的列号列表n_col     list
     """
     n_col = list()
     for col in range(len(type_str_list)):
-        if type_str_list[col] == 'NoneType':
+        if type_str_list[col] == 'NoneType' or type_str_list[col] == 'NaTType':
             n_col.append(col)
         else:
             pass
