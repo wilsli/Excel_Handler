@@ -151,10 +151,10 @@ uWSGI默认会从`/usr/sbin/uwsgi`运行，但从systemd启动服务必须在`/u
 
 >home  
 >'   └─ webApp  
->'               └─ ehApp (程序根目录)   
->'			├─ templates (页面模板目录（测试用）)  
->'			├─ infiles  (传入文件临时保存的目录)  
->'			└─ outfiles (处理完成输出文件的目录)  
+>'       └─ ehApp (程序根目录)   
+>'			      ├─ templates (页面模板目录（测试用）)  
+>'			      ├─ infiles  (传入文件临时保存的目录)  
+>'			      └─ outfiles (处理完成输出文件的目录)  
 
 需手动建立`/home/webApp`目录，将`ehApp.tar`文件解压到该目录上：  
 >   [root@server]# mkdir /home/webApp  
@@ -184,8 +184,8 @@ CentOS系统用systemd管理服务的自启动和服务进程守护，设置Exce
 >Main PID: 22377 (uwsgi)  
 >Status: "uWSGI is ready"  
 >CGroup: /system.slice/ehApp.service  
->'			├─22377 /usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini  
->'			└─22387 /usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini  
+>'             ├─22377 /usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini  
+>'	            └─22387 /usr/anaconda3/bin/uwsgi --ini /home/webApp/ehApp/ehApp.ini  
 >16:59:25 server  uwsgi[22377]: WSGI app 0 (mountpoint='') ready in 3 seconds on interpreter 0x1c64f30 pid: 22377 (default app)   
 
 用浏览器或者`curl`访问`127.0.0.1:9999`，可以得到程序工作目录的json返回。
