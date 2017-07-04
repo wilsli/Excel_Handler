@@ -1,0 +1,4 @@
+# README of /infiles directory
+
+This directory is mandatorily created for caching the input excel file.
+The main_prog.py will read excel file from this directory at the beginning of process, and then remove it afterwards.

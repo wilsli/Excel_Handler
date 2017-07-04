@@ -76,7 +76,7 @@ def api_sendfile():
         dt_scheme = dict()
         excel_writer = ExcelWriter(out_file, engine='openpyxl')
 
-#         os.remove(org_file)                               # 删除源文件
+        os.remove(org_file)                               # 删除源文件
 
         for sheetname in wb.get_sheet_names():
             if len(wb[sheetname]._cells) == 0:              # 跳过空表
