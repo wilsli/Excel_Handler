@@ -47,8 +47,8 @@ def test():
     return render_template('upload.html')
 
 
-@app.route('/api/sendfile', methods=['POST'])
-def api_sendfile():
+@app.route('/api/clean_xl', methods=['POST'])
+def clean_xl():
     file = request.files['filename']
     if file and allowed_file(file.filename):
         sec_name = secure_filename(file.filename)
